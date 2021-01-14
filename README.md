@@ -1,4 +1,4 @@
 
 # 数据库
-解压yyets.sqlite.zip使用
-数据库来源：https://t.me/mikuri520
+使用sqlite数据库
+数据库在：https://t.me/mikuri520/676
