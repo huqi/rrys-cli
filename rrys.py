@@ -3,11 +3,14 @@
 
 '''人人影视数据库前端'''
 
-import sys
+import getopt
 import json
 import logging
 import sqlite3
+import sys
 from enum import IntEnum, unique
+
+logging.basicConfig(level=logging.INFO)
 
 @unique
 class INFO(IntEnum):
@@ -19,20 +22,40 @@ class INFO(IntEnum):
     DATA = 5
     MAX = 6
 
-def search(name):
-    logging.info("search name = %s" % name)
-    sql = 'select * from resource where name like "%{}%"'.format(name)
-    logging.info("sql = %s", sql)
+def get_sql(data):
+    sql = ""
 
+    if 'id' in data:
+        sql = 'select * from resource where id = %s' % data['id']
+    elif 'name' in data:
+        sql = 'select * from resource where name like "%{}%"'.format(data['name'])
+    else:
+        raise AssertionError
+
+    logging.info("sql = %s" % sql)
+    return sql
+
+def search(data):
+    logging.info("id={}, name={}, format={}, season={}, episode={}, way={}".format(
+        data.get('id'),
+        data.get('name'),
+        data.get('format'),
+        data.get('season'),
+        data.get('episode'),
+        data.get('way')
+    ))
+
+    sql = get_sql(data)
     conn = sqlite3.connect('yyets.db')
     cursor = conn.cursor()
     cursor.execute(sql)
-    value = cursor.fetchall()
+    db_value = cursor.fetchall()
     cursor.close()
     conn.close()
-    return value
 
-def refresh_data(value):
+    return db_value
+
+def db_value_to_info(value):
     list = []
     count = len(value)
     logging.info("result count = %d" % count)
@@ -51,56 +74,134 @@ def refresh_data(value):
         list.append(data)
 
     return list
-    #print(list)
 
-    # print(value[0])
-    #with open('result.txt', 'w') as f:
-    #    f.write(value)
-    # info = json.loads(value)
-    # print(type(info))
-
-def print_result(list):
-    if not list:
-        print("没有找到该影片！")
+def join_str_list(header, list):
+    str = header
 
     for i in list:
+        str = str + i + ";"
+
+    return str
+
+def show(opt, info_arg):
+    for i in info_arg:
         info = i['DATA']['data']['info']
-        season_list = i['DATA']['data']['list']
-        print("==========")
-        print("中文片名：%s" % i['CN_NAME'])
-        print("英文片名：%s" % i['EN_NAME'])
-        print("别名：%s"% i['ALIAS_NAME'])
-        print("频道：%s" % info['channel_cn'])
-        for j in season_list:
-            print("%s：" % j['season_cn'])
-            print("----------")
-            if 'MP4' in j['formats']:
-                logging.info("MP4 Founded!")
-                mp4_set = j['items']['MP4']
-                for k in mp4_set:
-                    files = k['files']
-                    print(k['name'])
-                    print(files[0]['address'])
-                    print("----------")
-            else:
-                print("没有找到MP4格式文件！")
-            print("==========")
+        list = i['DATA']['data']['list']
+        print("==================================================")
+        print("ID:%s" % i['ID'])
+        print("URL:%s" % i['URL'])
+        print("片名：%s" % i['CN_NAME'])
+        print("原名：%s" % i['EN_NAME'])
+        print("别名：%s" % i['ALIAS_NAME'])
+        print("类别：%s" % info['channel_cn'])
+        print("地区：%s" % info['area'])
+        print("--------------------------------------------------")
+
+        if not opt['link_flag']:
+            continue
+
+        for l in list:
+            formats = opt['format']
+
+            if opt.get('season') and opt['season'] != l['season_num']:
+                continue
+
+            print(join_str_list("格式：", l['formats']))
+            print('%s' % l['season_cn'])
+
+            if 'ALL' in opt['format']:
+                formats = l['formats']
+
+            for o in formats:
+                print("--------------------------------------------------")
+                print("格式：%s" % o)
+                for m in l['items'][o]:
+                    if opt.get('episode') and opt['episode'] != m['episode']:
+                        continue
+
+                    print("片名：%s" % m['name'])
+                    if m['files']:
+                        for j in m['files']:
+                            print('渠道：%s' % j['way_cn'])
+                            print('下载地址：%s' % j['address'])
+                    else:
+                        print('None')
 
 def print_help():
     print('''
     用法示例：./rrys.py 我的天才女友
     ''')
 
-def main():
-    logging.basicConfig(level=logging.ERROR)
+def get_opt(argv):
+    data ={'link_flag':False}
 
-    if len(sys.argv) < 2:
-       print_help()
-       exit(-1)
+    try:
+        opts, args = getopt.getopt(argv, "hlf:i:n:s:e:w:", [
+            "help",
+            "list"
+            "format=",
+            "id=",
+            "name=",
+            "season=",
+            "episode=",
+            "way="])
+    except getopt.GetoptError:
+        print_help()
+        sys.exit(2)
 
-    value = search(sys.argv[1])
-    list = refresh_data(value)
-    print_result(list)
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            print_help()
+            sys.exit()
+        if opt in ('-l', '--link'):
+            data['link_flag'] = True
+        elif opt in ('-f', '--format'):
+            data['format'] = arg
+        elif opt in ('-i', '--id'):
+            data['id'] = arg
+        elif opt in ('-n', '--name'):
+            data['name'] = arg
+        elif opt in ('-s', '--season'):
+            data['season'] = arg
+        elif opt in ('-e', '--episode'):
+            data['episode'] = arg
+        elif opt in ('-w', '--way'):
+            data['way'] = arg
+
+    return data
+
+def check_opt(opt):
+    if not opt:
+        return False
+
+    if 'name' not in opt and 'id' not in opt:
+        return False
+
+    return True
+
+def opt(argv):
+    opt = get_opt(argv)
+
+    if check_opt(opt):
+        return opt
+
+def default_opt(opt):
+    if not opt.get('format'):
+        opt['format'] = ['MP4']
+
+    return opt
+
+def main(argv):
+    opt = get_opt(argv)
+
+    if not check_opt(opt):
+        print_help()
+        sys.exit(3)
+
+    opt = default_opt(opt)
+    db_value = search(opt)
+    info = db_value_to_info(db_value)
+    show(opt, info)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
