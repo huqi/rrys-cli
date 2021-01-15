@@ -16,6 +16,10 @@ logging.basicConfig(level=logging.INFO)
 
 @unique
 class INFO(IntEnum):
+    '''
+    信息类型枚举
+    '''
+
     ID = 0
     URL = 1
     NAME = 2
@@ -26,6 +30,10 @@ class INFO(IntEnum):
 
 @unique
 class TEXT_COLOR(IntEnum):
+    '''
+    字符串颜色枚举
+    '''
+
     BLACK = 30
     RED = 31
     GREEN = 32
@@ -36,15 +44,31 @@ class TEXT_COLOR(IntEnum):
     WHITE = 37
 
 def print_highlight_text(str, color):
+    '''
+    高亮输出字符串
+    '''
+
     print('\033[1;{}m {} \033[0m'.format(color, str))
 
 def print_text_yellow(str):
+    '''
+    高亮黄输出字符串
+    '''
+
     print_highlight_text(str, TEXT_COLOR.YELLOW)
 
 def print_text_red(str):
+    '''
+    高亮红输出字符串
+    '''
+
     print_highlight_text(str, TEXT_COLOR.RED)
 
 def get_sql(data):
+    '''
+    按id查询或按片名查询
+    '''
+
     sql = ""
 
     if 'id' in data:
@@ -58,6 +82,10 @@ def get_sql(data):
     return sql
 
 def search(data):
+    '''
+    查询影片
+    '''
+
     logging.info("id={}, name={}, format={}, season={}, episode={}, way={}".format(
         data.get('id'),
         data.get('name'),
@@ -78,6 +106,10 @@ def search(data):
     return db_value
 
 def db_value_to_info(value):
+    '''
+    数据库信息整理
+    '''
+
     list = []
     count = len(value)
     logging.info("result count = %d" % count)
@@ -98,6 +130,10 @@ def db_value_to_info(value):
     return list
 
 def join_str_list(header, list):
+    '''
+    拼接字符串
+    '''
+
     str = header
 
     for i in list:
@@ -106,6 +142,10 @@ def join_str_list(header, list):
     return str
 
 def show_info(i):
+    '''
+    输出影片信息
+    '''
+
     info = i['DATA']['data']['info']
     print_text_yellow("==================================================")
     print_text_yellow("ID:%s" % i['ID'])
@@ -118,13 +158,21 @@ def show_info(i):
     print_text_yellow("--------------------------------------------------")
 
 def copy_to_clipboard(flag, addr):
+    '''
+    将链接保存到剪切板
+    '''
+
     if not flag:
         return
-    
+
     num = input("选择渠道：")
     pyperclip.copy(addr[int(num)])
 
 def show(opt, info_arg):
+    '''
+    显示结果
+    '''
+
     for i in info_arg:
         list = i['DATA']['data']['list']
 
@@ -167,6 +215,10 @@ def show(opt, info_arg):
                 print("--------------------------------------------------\n\n")
 
 def print_help():
+    '''
+    输出帮助信息
+    '''
+
     print('''
     用法示例：./rrys.py -n 我的天才女友 -l
              -l             显示下载链接
@@ -177,7 +229,11 @@ def print_help():
     ''')
 
 def get_opt(argv):
-    data ={'link_flag':False}
+    '''
+    获取参数
+    '''
+
+    data = {}
 
     try:
         opts, args = getopt.getopt(argv, "hlcf:i:n:s:e:w:", [
@@ -218,6 +274,10 @@ def get_opt(argv):
     return data
 
 def check_opt(opt):
+    '''
+    验证参数
+    '''
+
     if not opt:
         return False
 
@@ -226,27 +286,34 @@ def check_opt(opt):
 
     return True
 
-def opt(argv):
-    opt = get_opt(argv)
-
-    if check_opt(opt):
-        return opt
-
 def default_opt(opt):
+    '''
+    设置默认参数
+    '''
+
     if not opt.get('format'):
         opt['format'] = ['MP4']
 
+    if not opt.get('link_flag'):
+        opt['link_flag'] = False
+
     return opt
 
-def main(argv):
+def opt(argv):
+    '''
+    处理参数
+    '''
+
     opt = get_opt(argv)
 
     if not check_opt(opt):
         print_help()
         sys.exit(3)
 
-    opt = default_opt(opt)
-    db_value = search(opt)
+    return default_opt(opt)
+
+def main(argv):
+    db_value = search(opt(argv))
     info = db_value_to_info(db_value)
     show(opt, info)
 
