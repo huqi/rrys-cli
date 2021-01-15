@@ -168,7 +168,12 @@ def show(opt, info_arg):
 
 def print_help():
     print('''
-    用法示例：./rrys.py 我的天才女友
+    用法示例：./rrys.py -n 我的天才女友 -l
+             -l             显示下载链接
+             -c             拷贝下载链接到剪切板
+             -i             用影片id查询
+             -f             指定格式
+             -w             指定下载渠道
     ''')
 
 def get_opt(argv):
