@@ -10,6 +10,8 @@ import sqlite3
 import sys
 from enum import IntEnum, unique
 
+import pyperclip
+
 logging.basicConfig(level=logging.INFO)
 
 @unique
@@ -103,19 +105,30 @@ def join_str_list(header, list):
 
     return str
 
+def show_info(i):
+    info = i['DATA']['data']['info']
+    print_text_yellow("==================================================")
+    print_text_yellow("ID:%s" % i['ID'])
+    print_text_yellow("URL:%s" % i['URL'])
+    print_text_yellow("片名：%s" % i['CN_NAME'])
+    print_text_yellow("原名：%s" % i['EN_NAME'])
+    print_text_yellow("别名：%s" % i['ALIAS_NAME'])
+    print_text_yellow("类别：%s" % info['channel_cn'])
+    print_text_yellow("地区：%s" % info['area'])
+    print_text_yellow("--------------------------------------------------")
+
+def copy_to_clipboard(flag, addr):
+    if not flag:
+        return
+    
+    num = input("选择渠道：")
+    pyperclip.copy(addr[int(num)])
+
 def show(opt, info_arg):
     for i in info_arg:
-        info = i['DATA']['data']['info']
         list = i['DATA']['data']['list']
-        print_text_yellow("==================================================")
-        print_text_yellow("ID:%s" % i['ID'])
-        print_text_yellow("URL:%s" % i['URL'])
-        print_text_yellow("片名：%s" % i['CN_NAME'])
-        print_text_yellow("原名：%s" % i['EN_NAME'])
-        print_text_yellow("别名：%s" % i['ALIAS_NAME'])
-        print_text_yellow("类别：%s" % info['channel_cn'])
-        print_text_yellow("地区：%s" % info['area'])
-        print_text_yellow("--------------------------------------------------")
+
+        show_info(i)
 
         if not opt['link_flag']:
             continue
@@ -141,9 +154,12 @@ def show(opt, info_arg):
 
                     print_text_red("片名：%s" % m['name'])
                     if m['files']:
-                        for j in m['files']:
-                            print_highlight_text('渠道：%s' % j['way_cn'], TEXT_COLOR.BLUE)
+                        addr = []
+                        for k, j in enumerate(m['files']):
+                            print_highlight_text('[%s]渠道：%s' % (k, j['way_cn']), TEXT_COLOR.BLUE)
                             print('下载地址：%s' % j['address'])
+                            addr.append(j['address'])
+                        copy_to_clipboard(opt.get('copy_flag'), addr)
                     else:
                         print('None')
                     print("\n")
@@ -159,9 +175,10 @@ def get_opt(argv):
     data ={'link_flag':False}
 
     try:
-        opts, args = getopt.getopt(argv, "hlf:i:n:s:e:w:", [
+        opts, args = getopt.getopt(argv, "hlcf:i:n:s:e:w:", [
             "help",
-            "list"
+            "list",
+            "copy",
             "format=",
             "id=",
             "name=",
@@ -188,6 +205,8 @@ def get_opt(argv):
             data['season'] = arg
         elif opt in ('-e', '--episode'):
             data['episode'] = arg
+        elif opt in ('-c', '--copy'):
+            data['copy_flag'] = True
         elif opt in ('-w', '--way'):
             data['way'] = arg
 
