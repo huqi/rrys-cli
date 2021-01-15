@@ -165,7 +165,10 @@ def copy_to_clipboard(flag, addr):
     if not flag:
         return
 
-    num = input("选择渠道：")
+    num = input("选择渠道('-1'退出)：")
+
+    if num == '-1':
+        sys.exit()
 
     if int(num) < len(addr):
         pyperclip.copy(addr[int(num)])
@@ -259,7 +262,7 @@ def get_opt(argv):
         if opt in ('-l', '--link'):
             data['link_flag'] = True
         elif opt in ('-f', '--format'):
-            data['format'] = arg
+            data['format'] = [arg]
         elif opt in ('-i', '--id'):
             data['id'] = arg
         elif opt in ('-n', '--name'):
@@ -318,7 +321,12 @@ def main(argv):
     option = opt(argv)
     db_value = search(option)
     info = db_value_to_info(db_value)
-    show(option, info)
+    try:
+        show(option, info)
+    except KeyboardInterrupt:
+        pass
+    except ValueError:
+        print("输入错误")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
