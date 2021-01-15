@@ -166,7 +166,9 @@ def copy_to_clipboard(flag, addr):
         return
 
     num = input("选择渠道：")
-    pyperclip.copy(addr[int(num)])
+
+    if int(num) < len(addr):
+        pyperclip.copy(addr[int(num)])
 
 def show(opt, info_arg):
     '''
@@ -313,9 +315,10 @@ def opt(argv):
     return default_opt(opt)
 
 def main(argv):
-    db_value = search(opt(argv))
+    option = opt(argv)
+    db_value = search(option)
     info = db_value_to_info(db_value)
-    show(opt, info)
+    show(option, info)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
