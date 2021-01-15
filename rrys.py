@@ -201,6 +201,11 @@ def show(opt, info_arg):
             for o in formats:
                 print_highlight_text("格式：%s" % o, TEXT_COLOR.GREEN)
                 print_highlight_text("-------------", TEXT_COLOR.GREEN)
+
+                if o not in l['items']:
+                    print("没有找到要查找的格式")
+                    continue
+
                 for m in l['items'][o]:
                     if opt.get('episode') and opt['episode'] != m['episode']:
                         continue
@@ -324,7 +329,7 @@ def main(argv):
     try:
         show(option, info)
     except KeyboardInterrupt:
-        pass
+        sys.exit(-1)
     except ValueError:
         print("输入错误")
 
