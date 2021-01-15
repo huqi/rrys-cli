@@ -22,6 +22,26 @@ class INFO(IntEnum):
     DATA = 5
     MAX = 6
 
+@unique
+class TEXT_COLOR(IntEnum):
+    BLACK = 30
+    RED = 31
+    GREEN = 32
+    YELLOW = 33
+    BLUE = 34
+    EXT_RED = 35
+    EXT_BLUE = 36
+    WHITE = 37
+
+def print_highlight_text(str, color):
+    print('\033[1;{}m {} \033[0m'.format(color, str))
+
+def print_text_yellow(str):
+    print_highlight_text(str, TEXT_COLOR.YELLOW)
+
+def print_text_red(str):
+    print_highlight_text(str, TEXT_COLOR.RED)
+
 def get_sql(data):
     sql = ""
 
@@ -87,15 +107,15 @@ def show(opt, info_arg):
     for i in info_arg:
         info = i['DATA']['data']['info']
         list = i['DATA']['data']['list']
-        print("==================================================")
-        print("ID:%s" % i['ID'])
-        print("URL:%s" % i['URL'])
-        print("片名：%s" % i['CN_NAME'])
-        print("原名：%s" % i['EN_NAME'])
-        print("别名：%s" % i['ALIAS_NAME'])
-        print("类别：%s" % info['channel_cn'])
-        print("地区：%s" % info['area'])
-        print("--------------------------------------------------")
+        print_text_yellow("==================================================")
+        print_text_yellow("ID:%s" % i['ID'])
+        print_text_yellow("URL:%s" % i['URL'])
+        print_text_yellow("片名：%s" % i['CN_NAME'])
+        print_text_yellow("原名：%s" % i['EN_NAME'])
+        print_text_yellow("别名：%s" % i['ALIAS_NAME'])
+        print_text_yellow("类别：%s" % info['channel_cn'])
+        print_text_yellow("地区：%s" % info['area'])
+        print_text_yellow("--------------------------------------------------")
 
         if not opt['link_flag']:
             continue
@@ -113,19 +133,22 @@ def show(opt, info_arg):
                 formats = l['formats']
 
             for o in formats:
-                print("--------------------------------------------------")
-                print("格式：%s" % o)
+                print_highlight_text("格式：%s" % o, TEXT_COLOR.GREEN)
+                print_highlight_text("-------------", TEXT_COLOR.GREEN)
                 for m in l['items'][o]:
                     if opt.get('episode') and opt['episode'] != m['episode']:
                         continue
 
-                    print("片名：%s" % m['name'])
+                    print_text_red("片名：%s" % m['name'])
                     if m['files']:
                         for j in m['files']:
-                            print('渠道：%s' % j['way_cn'])
+                            print_highlight_text('渠道：%s' % j['way_cn'], TEXT_COLOR.BLUE)
                             print('下载地址：%s' % j['address'])
                     else:
                         print('None')
+                    print("\n")
+
+                print("--------------------------------------------------\n\n")
 
 def print_help():
     print('''
