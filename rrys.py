@@ -165,9 +165,9 @@ def copy_to_clipboard(flag, addr):
     if not flag:
         return
 
-    num = input("选择渠道('-1'退出)：")
+    num = input("选择渠道('q'退出)：")
 
-    if num == '-1':
+    if num == 'q':
         sys.exit()
 
     if int(num) < len(addr):
