@@ -1,9 +1,11 @@
 
 # 数据库
+
 使用sqlite数据库
-数据库在：https://t.me/mikuri520/676
+数据库在：<https://t.me/mikuri520/676>
 
 # 用法
+
     用法示例：./rrys.py -n 我的天才女友 -l
              -l             显示下载链接
              -c             拷贝下载链接到剪切板
