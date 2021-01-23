@@ -165,10 +165,12 @@ def copy_to_clipboard(flag, addr):
     if not flag:
         return
 
-    num = input("选择渠道('q'退出)：")
+    num = input("选择渠道('q'退出,'i'忽略)：")
 
     if num == 'q':
         sys.exit()
+    elif num == 'i':
+        return
 
     if int(num) < len(addr):
         pyperclip.copy(addr[int(num)])
