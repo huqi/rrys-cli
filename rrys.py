@@ -304,7 +304,7 @@ def default_opt(opt):
     '''
 
     if not opt.get('format'):
-        opt['format'] = ['MP4']
+        opt['format'] = ['HR-HDTV']
 
     if not opt.get('link_flag'):
         opt['link_flag'] = False
